@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Efeito Subtitle para Texto</title>
+</head>
+<body>
+    <h1>English Learning</h1>
+    <h2>Read, Listen and Speak</h2>
+    <div id="subtitleContainer"></div>
+    <button onclick="startSpeaking()">Reproduzir</button>
+    <button onclick="pauseSpeaking()">Pausar</button>
+    <button onclick="resumeSpeaking()">Continuar</button>
+    <button onclick="stopSpeaking()">Parar</button>
+    <br>
+    <label for="speedSlider">Velocidade:</label>
+    <input type="range" min="0.1" max="1.0" step="0.1" value="0.8" id="speedSlider" onchange="changeSpeed()">
+    <span id="speedValue">0.8</span>
+
+    <script>
+        const textToSpeak = [
+            'Nature is a vast and enchanting canvas that constantly unveils its captivating beauty.',
+            'From the majestic mountains to the serene rivers and the lush forests, nature never ceases to amaze us.',
+            'Each sunrise brings a new promise, and every sunset paints a mesmerizing portrait in the sky.',
+            // ... (continuar com todas as frases)
+            'Let us cherish and protect these marvels so that they may continue to enchant and enrich our lives for generations to come.'
+        ];
+
+        let synth = window.speechSynthesis;
+        let currentSentence = 0;
+        let utterance = new SpeechSynthesisUtterance(textToSpeak[currentSentence]);
+        utterance.lang = 'en-GB'; // Define o idioma para Inglês Britânico (English - United Kingdom)
+        utterance.rate = 0.8; // Define a velocidade da fala para 0.8 (80% da velocidade padrão)
+        let subtitleContainer = document.getElementById('subtitleContainer');
+        let speedSlider = document.getElementById('speedSlider');
+        let speedValue = document.getElementById('speedValue');
+
+        speedSlider.oninput = () => {
+            utterance.rate = speedSlider.value;
+            speedValue.textContent = speedSlider.value;
+        };
+
+        utterance.onstart = () => {
+            subtitleContainer.innerHTML = textToSpeak[currentSentence];
+        };
+
+        utterance.onend = () => {
+            currentSentence++;
+            if (currentSentence < textToSpeak.length) {
+                utterance.text = textToSpeak[currentSentence];
+                synth.speak(utterance);
+            }
+        };
+
+        function startSpeaking() {
+            setTimeout(() => {
+                synth.speak(utterance);
+            }, 300);
+        }
+
+        function pauseSpeaking() {
+            setTimeout(() => {
+                synth.pause();
+            }, 300);
+        }
+
+        function resumeSpeaking() {
+            setTimeout(() => {
+                synth.resume();
+            }, 300);
+        }
+
+        function stopSpeaking() {
+            setTimeout(() => {
+                synth.cancel();
+            }, 300);
+        }
+
+        function changeSpeed() {
+            utterance.rate = speedSlider.value;
+            speedValue.textContent = speedSlider.value;
+        }
+
+        utterance.addEventListener('boundary', (event) => {
+            if (event.name === 'word') {
+                highlightWord(event.charIndex);
+            }
+        });
+
+        function highlightWord(charIndex) {
+            const wordsArray = textToSpeak[currentSentence].split(' ');
+            let highlightedText = '';
+            let currentWord = '';
+            let currentCharIndex = 0;
+            for (const word of wordsArray) {
+                if (currentCharIndex + word.length >= charIndex) {
+                    const start = charIndex - currentCharIndex;
+                    const end = start + word.length;
+                    currentWord = `${word.substring(0, start)}<span style="background-color: yellow;">${word.substring(start, end)}</span>${word.substring(end)} `;
+                    break;
+                } else {
+                    currentCharIndex += word.length + 1;
+                    highlightedText += `${word} `;
+                }
+            }
+            subtitleContainer.innerHTML = highlightedText + currentWord;
+        }
+    </script>
+</body>
+</html>
